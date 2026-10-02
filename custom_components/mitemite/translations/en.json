@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "MiteMite",
+        "description": "Connect MiteMite to TMDB.",
+        "data": {
+          "tmdb_api_key": "TMDB API key"
+        }
+      }
+    }
+  }
+}
