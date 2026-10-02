@@ -1,6 +1,7 @@
+import voluptuous as vol
+
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
-import voluptuous as vol
 
 from .const import DOMAIN
 
