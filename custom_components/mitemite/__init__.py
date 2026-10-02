@@ -1,26 +1,23 @@
-"""MiteMite: TV and anime release tracking for Home Assistant."""
-
+from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
+import voluptuous as vol
 
 from .const import DOMAIN
 
 
-def _async_setup_services(hass: HomeAssistant) -> None:
-    """Set up MiteMite services."""
-    # Services will be added during MVP implementation.
+CONFIG_SCHEMA = vol.All(
+    config_entries.config_entry_only_config_schema(DOMAIN)
+)
 
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
-    """Set up the MiteMite integration."""
-    _async_setup_services(hass)
+    """Set up MiteMite."""
     return True
 
 
-async def async_setup_entry(hass: HomeAssistant, entry) -> bool:
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: config_entries.ConfigEntry,
+) -> bool:
     """Set up MiteMite from a config entry."""
-    return True
-
-
-async def async_unload_entry(hass: HomeAssistant, entry) -> bool:
-    """Unload a MiteMite config entry."""
     return True
