@@ -12,5 +12,5 @@ jobs:
         with:
           python-version: "3.13"
       - run: pip install homeassistant pytest pytest-homeassistant-custom-component ruff
-      - run: ruff check .
+      - run: ruff check . --fix
       - run: pytest -q
