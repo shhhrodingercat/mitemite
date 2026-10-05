@@ -5,7 +5,7 @@ from homeassistant import config_entries
 from custom_components.mitemite.const import DOMAIN
 
 
-async def test_form(hass):
+async def test_form(hass, enable_custom_integrations):
     """Test the initial form."""
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
