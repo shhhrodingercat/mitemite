@@ -2,12 +2,165 @@
   "config": {
     "step": {
       "user": {
-        "title": "MiteMite",
-        "description": "Collega MiteMite a TMDB.",
+        "title": "Collega MiteMite a TMDB",
+        "description": "Inserisci la tua API key TMDB (una key v3 oppure un token di accesso in lettura v4). La regione serve a cercare la disponibilità in streaming, la lingua a titoli e descrizioni.",
         "data": {
-          "tmdb_api_key": "API key TMDB"
+          "api_key": "API key TMDB",
+          "region": "Regione",
+          "language": "Lingua"
+        }
+      },
+      "search": {
+        "title": "Cerca una serie",
+        "description": "Cerca su TMDB per titolo e scegli le serie da seguire. Potrai aggiungerne altre in seguito dalle opzioni dell'integrazione.",
+        "data": {
+          "query": "Titolo",
+          "anime_only": "Solo anime"
+        },
+        "data_description": {
+          "anime_only": "Mostra solo animazione giapponese."
+        }
+      },
+      "select": {
+        "title": "Seleziona le serie",
+        "description": "Scegli le serie da seguire.",
+        "data": {
+          "series_ids": "Serie da seguire"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Autenticati di nuovo su TMDB",
+        "description": "TMDB ha rifiutato l'API key salvata. Inserisci una nuova key.",
+        "data": {
+          "api_key": "API key TMDB"
         }
       }
+    },
+    "error": {
+      "invalid_auth": "TMDB ha rifiutato questa API key.",
+      "cannot_connect": "Impossibile contattare TMDB. Controlla la connessione e riprova.",
+      "unknown": "Errore imprevisto. Controlla i log di Home Assistant.",
+      "empty_query": "Inserisci un titolo.",
+      "no_results": "Nessuna serie trovata. Prova un altro titolo o disattiva il filtro anime.",
+      "select_at_least_one": "Seleziona almeno una serie."
+    },
+    "abort": {
+      "single_instance_allowed": "MiteMite è già configurato. Usa le opzioni per aggiungere o rimuovere serie.",
+      "reauth_successful": "Autenticazione completata."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Gestisci MiteMite",
+        "menu_options": {
+          "add_search": "Aggiungi serie",
+          "remove": "Rimuovi serie",
+          "settings": "Impostazioni"
+        }
+      },
+      "add_search": {
+        "title": "Cerca una serie da aggiungere",
+        "description": "Cerca su TMDB per titolo. Le serie che segui già non compaiono nei risultati.",
+        "data": {
+          "query": "Titolo",
+          "anime_only": "Solo anime"
+        },
+        "data_description": {
+          "anime_only": "Mostra solo animazione giapponese."
+        }
+      },
+      "add_select": {
+        "title": "Seleziona le serie da aggiungere",
+        "data": {
+          "series_ids": "Serie da seguire"
+        }
+      },
+      "remove": {
+        "title": "Rimuovi serie",
+        "description": "Seleziona le serie che non vuoi più seguire.",
+        "data": {
+          "series_ids": "Serie da rimuovere"
+        }
+      },
+      "settings": {
+        "title": "Impostazioni",
+        "data": {
+          "region": "Regione",
+          "language": "Lingua",
+          "new_episode_days": "Giorni in cui un episodio è considerato nuovo"
+        },
+        "data_description": {
+          "region": "Serve a cercare la disponibilità in streaming.",
+          "language": "Lingua di titoli e descrizioni.",
+          "new_episode_days": "Il sensore Nuovo episodio resta attivo per questo numero di giorni dopo l'uscita di un episodio."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Impossibile contattare TMDB. Controlla la connessione e riprova.",
+      "unknown": "Errore imprevisto. Controlla i log di Home Assistant.",
+      "empty_query": "Inserisci un titolo.",
+      "no_results": "Nessuna serie trovata. Prova un altro titolo o disattiva il filtro anime.",
+      "already_tracked": "Tutte le serie trovate sono già seguite.",
+      "select_at_least_one": "Seleziona almeno una serie."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "next_episode": {
+        "name": "Prossimo episodio"
+      },
+      "next_release": {
+        "name": "Prossima uscita"
+      },
+      "latest_episode": {
+        "name": "Ultimo episodio"
+      },
+      "episodes_aired": {
+        "name": "Episodi usciti"
+      },
+      "series_status": {
+        "name": "Stato serie",
+        "state": {
+          "returning": "In corso",
+          "ended": "Conclusa",
+          "canceled": "Cancellata",
+          "in_production": "In produzione",
+          "planned": "Pianificata",
+          "pilot": "Pilot"
+        }
+      },
+      "streaming": {
+        "name": "Streaming"
+      },
+      "last_update": {
+        "name": "Ultimo aggiornamento"
+      },
+      "api_status": {
+        "name": "Stato API",
+        "state": {
+          "ok": "OK",
+          "invalid_auth": "API key non valida",
+          "rate_limited": "Limite di richieste",
+          "error": "Errore"
+        }
+      }
+    },
+    "binary_sensor": {
+      "new_episode": {
+        "name": "Nuovo episodio"
+      }
+    },
+    "button": {
+      "refresh": {
+        "name": "Aggiorna dati"
+      }
+    }
+  },
+  "exceptions": {
+    "refresh_failed": {
+      "message": "MiteMite non è riuscito ad aggiornarsi da TMDB. Controlla i log di Home Assistant."
     }
   }
 }

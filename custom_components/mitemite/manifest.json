@@ -4,9 +4,10 @@
   "codeowners": ["@shhhrodingercat"],
   "config_flow": true,
   "documentation": "https://github.com/shhhrodingercat/mitemite",
-  "integration_type": "service",
+  "integration_type": "hub",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/shhhrodingercat/mitemite/issues",
   "requirements": [],
+  "single_config_entry": true,
   "version": "0.1.0"
 }

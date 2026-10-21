@@ -1,0 +1,21 @@
+{
+  "entity": {
+    "sensor": {
+      "next_episode": {"default": "mdi:television-play"},
+      "latest_episode": {"default": "mdi:television-classic"},
+      "episodes_aired": {"default": "mdi:counter"},
+      "series_status": {"default": "mdi:information-outline"},
+      "streaming": {"default": "mdi:cast"},
+      "api_status": {"default": "mdi:api"}
+    },
+    "binary_sensor": {
+      "new_episode": {
+        "default": "mdi:bell-outline",
+        "state": {"on": "mdi:bell-ring"}
+      }
+    },
+    "button": {
+      "refresh": {"default": "mdi:refresh"}
+    }
+  }
+}
