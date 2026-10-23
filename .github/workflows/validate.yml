@@ -1,11 +1,15 @@
-name: Validate integration
+name: Validate
 
 on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 0 * * *"
   workflow_dispatch:
 
 jobs:
   hassfest:
-    name: Home Assistant validation
+    name: Hassfest
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
