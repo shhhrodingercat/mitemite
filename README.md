@@ -126,6 +126,18 @@ ruff check .
 pytest
 ```
 
+## Support the project
+
+If you find MiteMite useful and would like to contribute to its development and maintenance:
+
+[![Buy Me a Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/shhhrodingercat)
+
+## Developer
+
+Developed by **Matteo Miccichè**.
+
+[LinkedIn](https://www.linkedin.com/in/miccichematteo/) · [Report a bug](https://github.com/shhhrodingercat/mitemite/issues)
+
 ## License
 
 [MIT](LICENSE). Data from TMDB and JustWatch is subject to their own terms.
