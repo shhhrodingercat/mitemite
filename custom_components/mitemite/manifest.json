@@ -2,6 +2,7 @@
   "domain": "mitemite",
   "name": "MiteMite",
   "codeowners": ["@shhhrodingercat"],
+  "categories": ["media_entertainment.tv_streaming"],
   "config_flow": true,
   "documentation": "https://github.com/shhhrodingercat/mitemite",
   "integration_type": "hub",
