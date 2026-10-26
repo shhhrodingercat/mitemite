@@ -28,6 +28,13 @@
           "series_ids": "Serie da seguire"
         }
       },
+      "calendars": {
+        "title": "Calendari",
+        "description": "Scegli le serie che avranno un calendario dedicato, con un evento di un giorno intero per ogni episodio in arrivo. Lascia tutto deselezionato per saltare. Ogni calendario costa una richiesta TMDB in più a ogni aggiornamento.",
+        "data": {
+          "calendar_ids": "Crea un calendario per"
+        }
+      },
       "reauth_confirm": {
         "title": "Autenticati di nuovo su TMDB",
         "description": "TMDB ha rifiutato l'API key salvata. Inserisci una nuova key.",
@@ -56,6 +63,7 @@
         "menu_options": {
           "add_search": "Aggiungi serie",
           "remove": "Rimuovi serie",
+          "calendars": "Calendari",
           "settings": "Impostazioni"
         }
       },
@@ -76,11 +84,25 @@
           "series_ids": "Serie da seguire"
         }
       },
+      "add_calendars": {
+        "title": "Calendari",
+        "description": "Scegli le nuove serie che avranno un calendario dedicato, con un evento di un giorno intero per ogni episodio in arrivo. Lascia tutto deselezionato per saltare. Ogni calendario costa una richiesta TMDB in più a ogni aggiornamento.",
+        "data": {
+          "calendar_ids": "Crea un calendario per"
+        }
+      },
       "remove": {
         "title": "Rimuovi serie",
         "description": "Seleziona le serie che non vuoi più seguire.",
         "data": {
           "series_ids": "Serie da rimuovere"
+        }
+      },
+      "calendars": {
+        "title": "Gestisci i calendari",
+        "description": "Seleziona le serie che hanno un calendario dedicato. Le serie che deselezioni lo perdono. Ogni calendario costa una richiesta TMDB in più a ogni aggiornamento.",
+        "data": {
+          "calendar_ids": "Serie con un calendario"
         }
       },
       "settings": {
@@ -156,11 +178,45 @@
       "refresh": {
         "name": "Aggiorna dati"
       }
+    },
+    "calendar": {
+      "calendar": {
+        "name": "Calendario"
+      }
+    }
+  },
+  "services": {
+    "get_releases": {
+      "name": "Ottieni le uscite",
+      "description": "Restituisce gli episodi in uscita in un intervallo di giorni, con i titoli delle serie pronti da usare nelle notifiche.",
+      "fields": {
+        "start_date": {
+          "name": "Data di inizio",
+          "description": "Primo giorno dell'intervallo. Se omessa, oggi."
+        },
+        "days": {
+          "name": "Giorni",
+          "description": "Numero di giorni dell'intervallo, a partire dalla data di inizio. Se omesso, 1: un solo giorno."
+        }
+      }
+    },
+    "get_upcoming": {
+      "name": "Ottieni le prossime uscite",
+      "description": "Restituisce i prossimi episodi in uscita, da oggi in poi, con i titoli delle serie pronti da usare nelle notifiche.",
+      "fields": {
+        "limit": {
+          "name": "Limite",
+          "description": "Numero massimo di episodi da restituire. Se omesso, 5."
+        }
+      }
     }
   },
   "exceptions": {
     "refresh_failed": {
       "message": "MiteMite non è riuscito ad aggiornarsi da TMDB. Controlla i log di Home Assistant."
+    },
+    "not_loaded": {
+      "message": "MiteMite non è caricato. Controlla l'integrazione in Impostazioni → Dispositivi e servizi."
     }
   }
 }

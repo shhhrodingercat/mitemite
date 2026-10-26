@@ -28,6 +28,13 @@
           "series_ids": "Series to follow"
         }
       },
+      "calendars": {
+        "title": "Calendars",
+        "description": "Choose the series that get a dedicated calendar with one all-day event for each upcoming episode. Leave everything unselected to skip it. Each calendar costs one more TMDB request per update.",
+        "data": {
+          "calendar_ids": "Create a calendar for"
+        }
+      },
       "reauth_confirm": {
         "title": "Re-authenticate with TMDB",
         "description": "TMDB rejected the saved API key. Enter a new one.",
@@ -56,6 +63,7 @@
         "menu_options": {
           "add_search": "Add series",
           "remove": "Remove series",
+          "calendars": "Calendars",
           "settings": "Settings"
         }
       },
@@ -76,11 +84,25 @@
           "series_ids": "Series to follow"
         }
       },
+      "add_calendars": {
+        "title": "Calendars",
+        "description": "Choose the new series that get a dedicated calendar with one all-day event for each upcoming episode. Leave everything unselected to skip it. Each calendar costs one more TMDB request per update.",
+        "data": {
+          "calendar_ids": "Create a calendar for"
+        }
+      },
       "remove": {
         "title": "Remove series",
         "description": "Select the series to stop following.",
         "data": {
           "series_ids": "Series to remove"
+        }
+      },
+      "calendars": {
+        "title": "Manage calendars",
+        "description": "Select the series that have a dedicated calendar. Series you unselect lose it. Each calendar costs one more TMDB request per update.",
+        "data": {
+          "calendar_ids": "Series with a calendar"
         }
       },
       "settings": {
@@ -156,11 +178,45 @@
       "refresh": {
         "name": "Update data"
       }
+    },
+    "calendar": {
+      "calendar": {
+        "name": "Calendar"
+      }
+    }
+  },
+  "services": {
+    "get_releases": {
+      "name": "Get releases",
+      "description": "Returns the episodes airing in a range of days, with the titles of their series ready to use in notifications.",
+      "fields": {
+        "start_date": {
+          "name": "Start date",
+          "description": "First day of the range. Defaults to today."
+        },
+        "days": {
+          "name": "Days",
+          "description": "Number of days in the range, starting from the start date. Defaults to 1, a single day."
+        }
+      }
+    },
+    "get_upcoming": {
+      "name": "Get upcoming releases",
+      "description": "Returns the next episodes to air, from today on, with the titles of their series ready to use in notifications.",
+      "fields": {
+        "limit": {
+          "name": "Limit",
+          "description": "Maximum number of episodes to return. Defaults to 5."
+        }
+      }
     }
   },
   "exceptions": {
     "refresh_failed": {
       "message": "MiteMite could not update from TMDB. Check the Home Assistant logs."
+    },
+    "not_loaded": {
+      "message": "MiteMite is not loaded. Check the integration in Settings → Devices & services."
     }
   }
 }
