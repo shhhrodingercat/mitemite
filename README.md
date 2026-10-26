@@ -6,7 +6,7 @@ MiteMite follows the TV series and anime you choose, tells you when the next epi
 
 ## Status
 
-Early development — version 0.1.0. Setup, options, the TMDB client and all the entities below are implemented. It has been tested against recorded TMDB responses; feedback from real installations is welcome.
+Early development — version 0.2.0. Setup, options, the TMDB client, the entities, the optional calendars and the actions below are implemented. It has been tested against recorded TMDB responses; feedback from real installations is welcome.
 
 ## Features
 
@@ -15,7 +15,9 @@ Early development — version 0.1.0. Setup, options, the TMDB client and all the
 - **Next and latest episode**, with the next release date.
 - **Streaming availability** for your region, as series-level metadata.
 - **Artwork and metadata as attributes** (poster, backdrop, TMDB link, genres, networks), so the data can feed other cards and integrations. Episode sensors use the poster as their picture.
-- **Light on TMDB:** one request per series, every 6 hours and shortly after midnight. After a failure it retries after 15 minutes and keeps showing the last known data.
+- **Optional calendar per series:** off by default, turned on series by series. It lists the upcoming episodes as all-day events, with the full episode data as JSON in the description. See [Calendars](#calendars).
+- **Actions for automations:** get the series airing today, in a range of days or next, with titles ready to use in a notification. See [Actions](#actions).
+- **Light on TMDB:** one request per series, two for series with a calendar, every 6 hours and shortly after midnight. After a failure it retries after 15 minutes and keeps showing the last known data.
 - **Read only:** MiteMite does not track what you have watched.
 
 ## Entities
@@ -31,6 +33,7 @@ Each followed series becomes a device with these entities.
 | Series status | sensor (enum) | Returning, ended, canceled, in production, planned or pilot. |
 | New episode | binary sensor | On for a configurable number of days after an episode airs. |
 | Streaming | sensor | Number of subscription (flatrate) providers in your region. |
+| Calendar | calendar | Optional. The next upcoming episode, with all of them listed in the calendar. See [Calendars](#calendars). |
 
 The **MiteMite** device groups the diagnostics: **Last update**, **API status** (`ok`, `invalid_auth`, `rate_limited` or `error`, with the last error as an attribute) and an **Update data** button.
 
@@ -60,6 +63,101 @@ actions:
       message: >
         {{ trigger.to_state.state }} aired on
         {{ trigger.to_state.attributes.air_date }}.
+```
+
+## Calendars
+
+A calendar is a Home Assistant calendar entity of its own, one per series that has one. It is **off by default**: when you add series you are asked which of them get a calendar, and you can change that at any time from **Configure → Calendars**. Turning a calendar off removes its entity.
+
+What a calendar contains:
+
+- **One all-day event for each upcoming episode** of the current season. TMDB provides dates, not times of day, so events are never timed.
+- **The past is never listed.** Events start from today: an episode airing today is there, an episode that aired yesterday is not.
+- **The title of an event is the series name.** The episode is in the description.
+- **An empty calendar is normal** when TMDB has no scheduled episode for the series, for example between two seasons.
+
+A series with a calendar costs one more TMDB request per update, for the episodes of its current season. Series without a calendar only know their next and latest episode.
+
+### Event description
+
+The description of an event is a JSON object, so an automation can read it without any text parsing. Its keys are the attributes of the episode sensors, plus `code` (for example `S01E1218`) and `streaming` (the names of the subscription providers in your region). Values TMDB does not have are left out.
+
+```json
+{
+  "series_name": "Detective Conan",
+  "code": "S01E1218",
+  "season_number": 1,
+  "episode_number": 1218,
+  "name": "...",
+  "air_date": "2026-10-24",
+  "episode_type": "standard",
+  "runtime": 25,
+  "streaming": ["Crunchyroll"],
+  "tmdb_url": "https://www.themoviedb.org/tv/..."
+}
+```
+
+Each event also has a stable unique ID, `mitemite-<series id>-S<season>E<episode>`, that does not change when its date does.
+
+### Example
+
+Notify at 09:00 on the day an episode airs, with the streaming service. Events are all-day, so the offset counts from midnight:
+
+```yaml
+alias: Episode airs today
+triggers:
+  - trigger: calendar
+    event: start
+    entity_id: calendar.detective_conan_1996_calendar
+    offset: "9:00:00"
+actions:
+  - variables:
+      release: "{{ trigger.calendar_event.description | from_json }}"
+  - action: notify.notify
+    data:
+      title: "{{ release.series_name }}"
+      message: >
+        {{ release.code }} airs today{% if release.streaming %}
+        on {{ release.streaming | join(', ') }}{% endif %}.
+```
+
+## Actions
+
+The actions return data for automations and scripts, to be used with `response_variable`. They work for every followed series, with or without a calendar. Both return the same response:
+
+| Key | Description |
+| --- | --- |
+| `count` | Number of releases found. |
+| `titles` | Series titles, once each, in air order and ready to use in a message. The title is the series name; the first air year is added only when two different series in the result share a name. |
+| `releases` | The releases, in air order. Each one has the same keys as the [event description](#event-description). |
+
+| Action | Fields | Description |
+| --- | --- | --- |
+| `mitemite.get_releases` | `start_date` (default: today), `days` (default: 1) | Episodes airing from `start_date` for `days` days. With no fields it returns what airs today. |
+| `mitemite.get_upcoming` | `limit` (default: 5) | The next `limit` episodes to air, from today on. |
+
+Series without a calendar only know their next and latest episode, so a long range or a past `start_date` can miss episodes for them. Turn on the calendar of a series to make the actions see its whole current season.
+
+### Example
+
+Tell me every morning what airs today:
+
+```yaml
+alias: Out today
+triggers:
+  - trigger: time
+    at: "08:00:00"
+actions:
+  - action: mitemite.get_releases
+    response_variable: today
+  - if:
+      - condition: template
+        value_template: "{{ today.count > 0 }}"
+    then:
+      - action: notify.notify
+        data:
+          title: Out today
+          message: "{{ today.titles | join(', ') }}"
 ```
 
 ## Data source and attribution
@@ -96,13 +194,14 @@ Streaming availability data is provided by [JustWatch](https://www.justwatch.com
 1. Enter your TMDB API key, your region (used for streaming availability) and your language (used for titles and descriptions).
 2. Search for a series by title. Turn on **Anime only** to keep only Japanese animation.
 3. Select the series to follow.
+4. Choose which of them get a [calendar](#calendars). Leave everything unselected if you do not want any.
 
-Only one MiteMite instance can be configured. To change the list later, open the integration and choose **Configure**: you can add series, remove series, or change region, language and for how many days an episode counts as new. If TMDB ever rejects the stored key, Home Assistant asks you for a new one.
+Only one MiteMite instance can be configured. To change the list later, open the integration and choose **Configure**: you can add series, remove series, turn calendars on or off, or change region, language and for how many days an episode counts as new. When you add series you are asked again which of the new ones get a calendar. If TMDB ever rejects the stored key, Home Assistant asks you for a new one.
 
 ## How dates and episode numbers work
 
 - **Air dates are broadcast dates in the series' country of origin**, not the date a streaming service in your region publishes the episode. An anime aired on a Saturday in Japan may reach your service later.
-- **TMDB has no time of day**, only a date.
+- **TMDB has no time of day**, only a date. For this reason calendar events are all-day.
 - **TMDB has no anime flag.** The **Anime only** filter keeps series in the Animation genre that originate in Japan.
 - **Anime are usually a single TMDB season with absolute numbering**, so an episode code can look like `S01E1218`. MiteMite shows what TMDB reports.
 - **Episodes aired is calculated** from the season list and the last aired episode, because TMDB's own episode count includes scheduled episodes.
@@ -117,6 +216,7 @@ Only one MiteMite instance can be configured. To change the list later, open the
 - **Next release is `unknown`:** TMDB has no scheduled episode for the series, for example between two seasons.
 - **A series' entities are unavailable:** TMDB no longer has it. Remove it from the options.
 - **API status shows an error:** the `last_error` attribute says why. Entities keep their last data and the integration retries after 15 minutes; press **Update data** to retry now.
+- **A calendar is empty or has fewer episodes than expected:** MiteMite lists what TMDB has scheduled for the current season, and nothing before today. If the series has no scheduled episode, the calendar is empty until TMDB adds one.
 
 ## Development
 
@@ -125,18 +225,6 @@ pip install -r requirements_test.txt
 ruff check .
 pytest
 ```
-
-## Support the project
-
-If you find MiteMite useful and would like to contribute to its development and maintenance:
-
-[![Buy Me a Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/shhhrodingercat)
-
-## Developer
-
-Developed by **Matteo Miccichè**.
-
-[LinkedIn](https://www.linkedin.com/in/miccichematteo/) · [Report a bug](https://github.com/shhhrodingercat/mitemite/issues)
 
 ## License
 
