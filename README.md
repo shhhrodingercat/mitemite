@@ -6,7 +6,7 @@ MiteMite follows the TV series and anime you choose, tells you when the next epi
 
 ## Status
 
-Early development — version 0.2.0. Setup, options, the TMDB client, the entities, the optional calendars and the actions below are implemented. It has been tested against recorded TMDB responses; feedback from real installations is welcome.
+Early development — version 0.2.1. Setup, options, the TMDB client, the entities, the optional calendars and the actions below are implemented. It has been tested against recorded TMDB responses; feedback from real installations is welcome.
 
 ## Features
 
