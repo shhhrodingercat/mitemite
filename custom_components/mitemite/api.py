@@ -124,6 +124,26 @@ def parse_episode(data: dict[str, Any] | None) -> Episode | None:
         return None
 
 
+def parse_season_episodes(
+    data: dict[str, Any], since: date | None = None
+) -> tuple[Episode, ...]:
+    """Parse a /tv/{id}/season/{n} response, keeping dated episodes from ``since``.
+
+    Anime often have a single season of over a thousand episodes: the ones that
+    already aired are skipped before they are parsed.
+    """
+    episodes: list[Episode] = []
+    for item in data.get("episodes") or []:
+        if not isinstance(item, dict):
+            continue
+        air_date = _parse_date(item.get("air_date"))
+        if air_date is None or (since is not None and air_date < since):
+            continue
+        if (episode := parse_episode(item)) is not None:
+            episodes.append(episode)
+    return tuple(episodes)
+
+
 def _parse_provider_list(items: Any) -> tuple[Provider, ...]:
     """Parse a provider list, ordered by TMDB display priority."""
     providers = [
@@ -349,3 +369,10 @@ class TMDBClient:
             return parse_series(data, self._region)
         except (KeyError, TypeError, ValueError) as err:
             raise TMDBError("Unexpected series data from TMDB") from err
+
+    async def get_season(
+        self, series_id: int, season_number: int, *, since: date | None = None
+    ) -> tuple[Episode, ...]:
+        """Fetch the episodes of one season that air on or after ``since``."""
+        data = await self._get(f"/tv/{series_id}/season/{season_number}")
+        return parse_season_episodes(data, since)

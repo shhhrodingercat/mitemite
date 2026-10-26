@@ -61,7 +61,7 @@ class WatchProviders:
 
 @dataclass(frozen=True)
 class Episode:
-    """A TV episode as reported by TMDB's last/next episode to air.
+    """A TV episode as reported by TMDB.
 
     Anime are usually numbered in a single TMDB season with absolute episode
     numbers, so ``code`` can legitimately look like ``S01E1218``.
@@ -90,7 +90,11 @@ class Episode:
 
 @dataclass(frozen=True)
 class Series:
-    """A TV series with everything MiteMite needs, from one TMDB request."""
+    """A TV series with everything MiteMite needs, from one TMDB request.
+
+    ``episodes`` is filled by a second request, only for series that have a
+    calendar: it holds the episodes of the current season that have not aired yet.
+    """
 
     id: int
     name: str
@@ -112,6 +116,7 @@ class Series:
     last_episode: Episode | None = None
     next_episode: Episode | None = None
     providers: WatchProviders | None = None
+    episodes: tuple[Episode, ...] = ()
 
     @property
     def year(self) -> int | None:
@@ -137,6 +142,24 @@ class Series:
     def tmdb_url(self) -> str:
         """Return the TMDB page of the series."""
         return f"{TMDB_TV_URL}/{self.id}"
+
+    @property
+    def known_episodes(self) -> tuple[Episode, ...]:
+        """Return the episodes with an air date TMDB tells us about, in air order.
+
+        These are the last and next episode to air and, for series with a
+        calendar, the episodes of the current season that have not aired yet.
+        """
+        known: dict[tuple[int, int], Episode] = {}
+        for episode in (*self.episodes, self.last_episode, self.next_episode):
+            if episode is not None and episode.air_date is not None:
+                known.setdefault((episode.season_number, episode.number), episode)
+        return tuple(
+            sorted(
+                known.values(),
+                key=lambda e: (e.air_date, e.season_number, e.number),
+            )
+        )
 
 
 @dataclass(frozen=True)

@@ -16,6 +16,13 @@
     },
     "button": {
       "refresh": {"default": "mdi:refresh"}
+    },
+    "calendar": {
+      "calendar": {"default": "mdi:calendar-star"}
     }
+  },
+  "services": {
+    "get_releases": {"service": "mdi:calendar-search"},
+    "get_upcoming": {"service": "mdi:calendar-arrow-right"}
   }
 }

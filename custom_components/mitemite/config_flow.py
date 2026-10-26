@@ -27,6 +27,7 @@ from .api import (
 )
 from .const import (
     CONF_ANIME_ONLY,
+    CONF_CALENDAR_IDS,
     CONF_LANGUAGE,
     CONF_NEW_EPISODE_DAYS,
     CONF_QUERY,
@@ -116,6 +117,27 @@ def _selection_schema(options: list[dict[str, str]]) -> vol.Schema:
     )
 
 
+def _calendar_schema(options: list[dict[str, str]]) -> vol.Schema:
+    """Build the form that picks the series with a calendar: none by default."""
+    return vol.Schema(
+        {
+            vol.Optional(CONF_CALENDAR_IDS, default=list): selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=options,
+                    multiple=True,
+                    mode=selector.SelectSelectorMode.LIST,
+                )
+            )
+        }
+    )
+
+
+def _chosen_calendar_ids(user_input: dict[str, Any], allowed: list[int]) -> list[int]:
+    """Return the series picked in a calendar form, in the order of ``allowed``."""
+    picked = {int(series_id) for series_id in user_input.get(CONF_CALENDAR_IDS, [])}
+    return [series_id for series_id in allowed if series_id in picked]
+
+
 def _search_options(results: list[SearchResult]) -> list[dict[str, str]]:
     return [
         {
@@ -157,6 +179,7 @@ class MiteMiteConfigFlow(ConfigFlow, domain=DOMAIN):
         self._region = DEFAULT_REGION
         self._language = DEFAULT_LANGUAGE
         self._results: list[SearchResult] = []
+        self._selected: list[int] = []
 
     @staticmethod
     @callback
@@ -219,26 +242,40 @@ class MiteMiteConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_select(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Select the series to follow and create the entry."""
+        """Select the series to follow."""
         errors: dict[str, str] = {}
         if user_input is not None:
             selected = [int(series_id) for series_id in user_input[CONF_SERIES_IDS]]
             if selected:
-                return self.async_create_entry(
-                    title=NAME,
-                    data={CONF_API_KEY: self._api_key},
-                    options={
-                        CONF_SERIES_IDS: selected,
-                        CONF_REGION: self._region,
-                        CONF_LANGUAGE: self._language,
-                        CONF_NEW_EPISODE_DAYS: DEFAULT_NEW_EPISODE_DAYS,
-                    },
-                )
+                self._selected = selected
+                return await self.async_step_calendars()
             errors["base"] = "select_at_least_one"
         return self.async_show_form(
             step_id="select",
             data_schema=_selection_schema(_search_options(self._results)),
             errors=errors,
+        )
+
+    async def async_step_calendars(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Ask which of the selected series get a calendar, then create the entry."""
+        if user_input is not None:
+            return self.async_create_entry(
+                title=NAME,
+                data={CONF_API_KEY: self._api_key},
+                options={
+                    CONF_SERIES_IDS: self._selected,
+                    CONF_CALENDAR_IDS: _chosen_calendar_ids(user_input, self._selected),
+                    CONF_REGION: self._region,
+                    CONF_LANGUAGE: self._language,
+                    CONF_NEW_EPISODE_DAYS: DEFAULT_NEW_EPISODE_DAYS,
+                },
+            )
+        selected = [result for result in self._results if result.id in self._selected]
+        return self.async_show_form(
+            step_id="calendars",
+            data_schema=_calendar_schema(_search_options(selected)),
         )
 
     async def async_step_reauth(
@@ -273,13 +310,14 @@ class MiteMiteConfigFlow(ConfigFlow, domain=DOMAIN):
 
 
 class MiteMiteOptionsFlow(OptionsFlowWithReload):
-    """Add or remove followed series and change settings.
+    """Add or remove followed series, choose their calendars and change settings.
 
     Every step stores the full options dict: an options flow replaces it.
     """
 
     def __init__(self) -> None:
         self._results: list[SearchResult] = []
+        self._added: list[int] = []
         self._tracked_options: list[dict[str, str]] | None = None
 
     @property
@@ -296,13 +334,17 @@ class MiteMiteOptionsFlow(OptionsFlowWithReload):
     def _tracked_ids(self) -> list[int]:
         return list(self.config_entry.options.get(CONF_SERIES_IDS, []))
 
+    @property
+    def _calendar_ids(self) -> list[int]:
+        return list(self.config_entry.options.get(CONF_CALENDAR_IDS, []))
+
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Choose what to change."""
         menu = ["add_search"]
         if self._tracked_ids:
-            menu.append("remove")
+            menu.extend(["remove", "calendars"])
         menu.append("settings")
         return self.async_show_menu(step_id="init", menu_options=menu)
 
@@ -331,15 +373,34 @@ class MiteMiteOptionsFlow(OptionsFlowWithReload):
         if user_input is not None:
             selected = [int(series_id) for series_id in user_input[CONF_SERIES_IDS]]
             if selected:
-                updated = list(dict.fromkeys([*self._tracked_ids, *selected]))
-                return self.async_create_entry(
-                    data={**self.config_entry.options, CONF_SERIES_IDS: updated}
-                )
+                self._added = selected
+                return await self.async_step_add_calendars()
             errors["base"] = "select_at_least_one"
         return self.async_show_form(
             step_id="add_select",
             data_schema=_selection_schema(_search_options(self._results)),
             errors=errors,
+        )
+
+    async def async_step_add_calendars(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Ask which of the added series get a calendar, then save both lists."""
+        if user_input is not None:
+            updated = list(dict.fromkeys([*self._tracked_ids, *self._added]))
+            chosen = _chosen_calendar_ids(user_input, self._added)
+            calendars = list(dict.fromkeys([*self._calendar_ids, *chosen]))
+            return self.async_create_entry(
+                data={
+                    **self.config_entry.options,
+                    CONF_SERIES_IDS: updated,
+                    CONF_CALENDAR_IDS: calendars,
+                }
+            )
+        added = [result for result in self._results if result.id in self._added]
+        return self.async_show_form(
+            step_id="add_calendars",
+            data_schema=_calendar_schema(_search_options(added)),
         )
 
     async def async_step_remove(
@@ -351,14 +412,41 @@ class MiteMiteOptionsFlow(OptionsFlowWithReload):
             selected = {int(series_id) for series_id in user_input[CONF_SERIES_IDS]}
             if selected:
                 remaining = [i for i in self._tracked_ids if i not in selected]
+                calendars = [i for i in self._calendar_ids if i in remaining]
                 return self.async_create_entry(
-                    data={**self.config_entry.options, CONF_SERIES_IDS: remaining}
+                    data={
+                        **self.config_entry.options,
+                        CONF_SERIES_IDS: remaining,
+                        CONF_CALENDAR_IDS: calendars,
+                    }
                 )
             errors["base"] = "select_at_least_one"
         return self.async_show_form(
             step_id="remove",
             data_schema=_selection_schema(await self._async_tracked_options()),
             errors=errors,
+        )
+
+    async def async_step_calendars(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Turn the calendar of each followed series on or off."""
+        if user_input is not None:
+            return self.async_create_entry(
+                data={
+                    **self.config_entry.options,
+                    CONF_CALENDAR_IDS: _chosen_calendar_ids(
+                        user_input, self._tracked_ids
+                    ),
+                }
+            )
+        schema = _calendar_schema(await self._async_tracked_options())
+        return self.async_show_form(
+            step_id="calendars",
+            data_schema=self.add_suggested_values_to_schema(
+                schema,
+                {CONF_CALENDAR_IDS: [str(i) for i in self._calendar_ids]},
+            ),
         )
 
     async def async_step_settings(

@@ -57,6 +57,22 @@ def episode_attributes(series: Series, episode: Episode | None) -> dict[str, Any
     return {**attributes, **series_attributes(series)}
 
 
+def release_attributes(series: Series, episode: Episode) -> dict[str, Any]:
+    """Return one release as a flat dict, for calendar events and actions.
+
+    The keys are the ones of the sensor attributes, plus the episode ``code`` and
+    the names of the subscription providers in ``streaming``. Calendar events
+    carry it as JSON in their description, actions return it in ``releases``.
+    """
+    streaming = [p.name for p in series.providers.flatrate] if series.providers else []
+    return {
+        "series_name": series.name,
+        "code": episode.code,
+        **episode_attributes(series, episode),
+        **({"streaming": streaming} if streaming else {}),
+    }
+
+
 def count_attributes(series: Series) -> dict[str, Any]:
     """Return the episode and season counts and the production flag."""
     return _compact(

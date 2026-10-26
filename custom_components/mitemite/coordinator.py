@@ -2,8 +2,8 @@
 
 import asyncio
 import logging
-from dataclasses import dataclass
-from datetime import datetime, timedelta
+from dataclasses import dataclass, replace
+from datetime import date, datetime, timedelta
 from enum import StrEnum
 
 from homeassistant.config_entries import ConfigEntry
@@ -19,7 +19,7 @@ from .api import (
     TMDBNotFoundError,
     TMDBRateLimitError,
 )
-from .const import CONF_SERIES_IDS, DOMAIN
+from .const import CONF_CALENDAR_IDS, CONF_SERIES_IDS, DOMAIN
 from .models import Series
 
 _LOGGER = logging.getLogger(__name__)
@@ -43,7 +43,11 @@ type MiteMiteConfigEntry = ConfigEntry[MiteMiteRuntimeData]
 
 
 class MiteMiteCoordinator(DataUpdateCoordinator[dict[int, Series]]):
-    """Fetch every followed series from TMDB, one request each."""
+    """Fetch every followed series from TMDB, one request each.
+
+    Series with a calendar cost a second request: the episodes of their current
+    season, needed to list more than the next episode.
+    """
 
     config_entry: MiteMiteConfigEntry
 
@@ -72,13 +76,21 @@ class MiteMiteCoordinator(DataUpdateCoordinator[dict[int, Series]]):
         no earlier data fails the whole update, so setup is retried instead of
         starting with missing entities.
         """
-        series_ids: list[int] = list(self.config_entry.options.get(CONF_SERIES_IDS, []))
+        options = self.config_entry.options
+        series_ids: list[int] = list(options.get(CONF_SERIES_IDS, []))
+        calendar_ids = set(options.get(CONF_CALENDAR_IDS, []))
         previous = self.data or {}
+        today = dt_util.now().date()
         semaphore = asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)
 
         async def fetch(series_id: int) -> Series:
             async with semaphore:
-                return await self.client.get_series(series_id)
+                series = await self.client.get_series(series_id)
+                if series_id in calendar_ids:
+                    series = await self._async_add_season(
+                        series, previous.get(series_id), today
+                    )
+                return series
 
         results = await asyncio.gather(
             *(fetch(series_id) for series_id in series_ids), return_exceptions=True
@@ -115,6 +127,35 @@ class MiteMiteCoordinator(DataUpdateCoordinator[dict[int, Series]]):
         for series_id, _ in failures:
             data[series_id] = previous[series_id]
         return data
+
+    async def _async_add_season(
+        self, series: Series, previous: Series | None, today: date
+    ) -> Series:
+        """Attach the episodes of the current season that have not aired yet.
+
+        The current season is the one of the next episode, or of the last one when
+        nothing is scheduled. Episodes before today are never kept: calendars do
+        not list the past. A failure here is not worth failing the update: the
+        episodes of the previous update are kept.
+        """
+        anchor = series.next_episode or series.last_episode
+        if anchor is None:
+            return series
+        try:
+            episodes = await self.client.get_season(
+                series.id, anchor.season_number, since=today
+            )
+        except TMDBNotFoundError:
+            return series
+        except TMDBError as err:
+            _LOGGER.warning(
+                "Could not fetch the season of TMDB series %s, keeping its last "
+                "episodes: %s",
+                series.id,
+                err,
+            )
+            return replace(series, episodes=previous.episodes) if previous else series
+        return replace(series, episodes=episodes)
 
     def _record_success(self) -> None:
         self.api_status = ApiStatus.OK

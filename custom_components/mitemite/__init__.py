@@ -6,11 +6,14 @@ from homeassistant.const import CONF_API_KEY, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.event import async_track_time_change
 
 from .api import TMDBClient
 from .const import (
+    CALENDAR_KEY,
+    CONF_CALENDAR_IDS,
     CONF_LANGUAGE,
     CONF_REGION,
     CONF_SERIES_IDS,
@@ -20,13 +23,20 @@ from .const import (
     SYSTEM_DEVICE_ID,
 )
 from .coordinator import MiteMiteConfigEntry, MiteMiteCoordinator, MiteMiteRuntimeData
+from .services import async_setup_services
 
-PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.BUTTON, Platform.SENSOR]
+PLATFORMS: list[Platform] = [
+    Platform.BINARY_SENSOR,
+    Platform.BUTTON,
+    Platform.CALENDAR,
+    Platform.SENSOR,
+]
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
-    """Set up MiteMite."""
+    """Set up MiteMite and register its actions."""
+    async_setup_services(hass)
     return True
 
 
@@ -43,6 +53,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: MiteMiteConfigEntry) -> 
     entry.runtime_data = MiteMiteRuntimeData(client=client, coordinator=coordinator)
 
     _async_remove_stale_devices(hass, entry)
+    _async_remove_stale_calendars(hass, entry)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     async def async_refresh_after_midnight(_now: datetime) -> None:
@@ -101,3 +112,17 @@ def _async_remove_stale_devices(
             registry.async_update_device(
                 device.id, remove_config_entry_id=entry.entry_id
             )
+
+
+def _async_remove_stale_calendars(
+    hass: HomeAssistant, entry: MiteMiteConfigEntry
+) -> None:
+    """Remove the calendar entities of series whose calendar was turned off."""
+    wanted = {
+        f"{series_id}_{CALENDAR_KEY}"
+        for series_id in entry.options.get(CONF_CALENDAR_IDS, [])
+    }
+    registry = er.async_get(hass)
+    for entity in er.async_entries_for_config_entry(registry, entry.entry_id):
+        if entity.domain == Platform.CALENDAR and entity.unique_id not in wanted:
+            registry.async_remove(entity.entity_id)
