@@ -122,5 +122,6 @@ UNRECORDED_ATTRIBUTES = frozenset(
         "buy",
         "link",
         "entity_picture",
+        "data",
     }
 )
