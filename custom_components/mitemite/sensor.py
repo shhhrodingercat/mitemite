@@ -70,7 +70,7 @@ def _status(series: Series) -> str | None:
     return None if series.status is SeriesStatus.UNKNOWN else series.status.value
 
 
-def _upcoming_media_data(coordinator: MiteMiteCoordinator) -> list[dict[str, str]]:
+def _upcoming_media_data(coordinator: MiteMiteCoordinator) -> list[dict[str, Any]]:
     """Build Upcoming Media Card items from all known future episodes."""
     today = dt_util.now().date()
     releases = [
@@ -82,7 +82,7 @@ def _upcoming_media_data(coordinator: MiteMiteCoordinator) -> list[dict[str, str
     ]
     releases.sort(key=lambda item: item[:4])
 
-    data: list[dict[str, str]] = []
+    data: list[dict[str, Any]] = []
     for air_date, _, _, _, series, episode in releases:
         item = {
             "title": series.name,
