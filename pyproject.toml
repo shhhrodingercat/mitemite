@@ -1,6 +1,6 @@
 [project]
 name = "mitemite"
-version = "0.2.3"
+version = "0.2.4"
 description = "TV and anime release tracking for Home Assistant"
 requires-python = ">=3.13"
 
