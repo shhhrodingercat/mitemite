@@ -80,8 +80,8 @@ def _upcoming_media_data(coordinator: MiteMiteCoordinator) -> list[dict[str, Any
         for episode in series.known_episodes
         if episode.air_date is not None and episode.air_date >= today
     ]
-    # Upcoming Media Card expects releases in descending airdate order.
-    releases.sort(key=lambda item: item[:4], reverse=True)
+    # Keep the nearest upcoming release first.
+    releases.sort(key=lambda item: item[:4])
 
     data: list[dict[str, Any]] = []
     for air_date, _, _, _, series, episode in releases:
