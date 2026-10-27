@@ -15,6 +15,7 @@ Early development — version 0.2.2. Setup, options, the TMDB client, the entiti
 - **Next and latest episode**, with the next release date.
 - **Streaming availability** for your region, as series-level metadata.
 - **Artwork and metadata as attributes** (poster, backdrop, TMDB link, genres, networks), so the data can feed other cards and integrations. Episode sensors use the poster as their picture.
+- **Upcoming Media Card support:** a single aggregate sensor exposes the upcoming episodes known for every followed series, using the card's `data` attribute. It reuses existing data and makes no extra TMDB requests.
 - **Optional calendar:** one **MiteMite** calendar with the upcoming episodes of the series you choose, as all-day events with the full episode data as JSON in the description. Off by default, turned on series by series. See [Calendar](#calendar).
 - **Actions for automations:** get the series airing today, in a range of days or next, with titles ready to use in a notification. See [Actions](#actions).
 - **Light on TMDB:** one request per series, two for series in the calendar, every 6 hours and shortly after midnight. After a failure it retries after 15 minutes and keeps showing the last known data.
@@ -34,7 +35,21 @@ Each followed series becomes a device with these entities.
 | New episode | binary sensor | On for a configurable number of days after an episode airs. |
 | Streaming | sensor | Number of subscription (flatrate) providers in your region. |
 
-The **MiteMite** device groups the diagnostics: **Last update**, **API status** (`ok`, `invalid_auth`, `rate_limited` or `error`, with the last error as an attribute) and an **Update data** button. It also holds the optional [calendar](#calendar).
+The **MiteMite** device groups the diagnostics: **Last update**, **API status** (`ok`, `invalid_auth`, `rate_limited` or `error`, with the last error as an attribute), an **Update data** button and the **Upcoming media** sensor for media cards. It also holds the optional [calendar](#calendar).
+
+### Upcoming Media Card
+
+Use `sensor.mitemite_upcoming_media` with [Upcoming Media Card](https://github.com/custom-cards/upcoming-media-card):
+
+```yaml
+type: custom:upcoming-media-card
+entity: sensor.mitemite_upcoming_media
+title: Prossime uscite
+image_style: poster
+max: 10
+```
+
+The sensor state is the number of upcoming episodes and its `data` attribute contains the list of card items: series title, episode title/code, air date, poster, backdrop, episode overview and TMDB link. It includes **all followed series**, regardless of calendar settings, and shows only the episode dates already known to MiteMite. For series not in the optional calendar, TMDB usually provides only the next episode, so those series may contribute just one item. No additional API requests are made. Dates are TMDB air dates, not verified release dates on streaming services.
 
 ### Attributes
 
