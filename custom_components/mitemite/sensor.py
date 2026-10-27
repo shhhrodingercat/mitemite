@@ -80,7 +80,8 @@ def _upcoming_media_data(coordinator: MiteMiteCoordinator) -> list[dict[str, Any
         for episode in series.known_episodes
         if episode.air_date is not None and episode.air_date >= today
     ]
-    releases.sort(key=lambda item: item[:4])
+    # Upcoming Media Card expects releases in descending airdate order.
+    releases.sort(key=lambda item: item[:4], reverse=True)
 
     data: list[dict[str, Any]] = []
     for air_date, _, _, _, series, episode in releases:
@@ -88,13 +89,15 @@ def _upcoming_media_data(coordinator: MiteMiteCoordinator) -> list[dict[str, Any
             "title": series.name,
             "episode": episode.name or episode.code,
             "number": episode.code,
-            "airdate": air_date.isoformat(),
-            "poster": series.poster_url,
-            "fanart": series.backdrop_url,
-            "summary": episode.overview,
-            "deep_link": series.tmdb_url,
+            # The card expects an ISO 8601 timestamp, not just YYYY-MM-DD.
+            "airdate": f"{air_date.isoformat()}T00:00:00Z",
+            "poster": series.poster_url or "",
+            "fanart": series.backdrop_url or "",
+            "summary": episode.overview or "",
+            "deep_link": series.tmdb_url or "",
         }
-        data.append({key: value for key, value in item.items() if value})
+        # Empty optional values must be strings rather than null/missing.
+        data.append(item)
     return data
 
 
@@ -151,7 +154,19 @@ SYSTEM_SENSORS: tuple[MiteMiteSystemSensorDescription, ...] = (
         translation_key="upcoming_media",
         icon="mdi:television-play",
         value_fn=lambda coordinator: len(_upcoming_media_data(coordinator)),
-        attributes_fn=lambda coordinator: {"data": _upcoming_media_data(coordinator)},
+        attributes_fn=lambda coordinator: {
+            "data": [
+                {
+                    "title_default": "$title",
+                    "line1_default": "$episode",
+                    "line2_default": "$number",
+                    "line3_default": "$date",
+                    "line4_default": "$empty",
+                    "icon": "mdi:television-play",
+                },
+                *_upcoming_media_data(coordinator),
+            ]
+        },
     ),
     MiteMiteSystemSensorDescription(
         key="last_update",
