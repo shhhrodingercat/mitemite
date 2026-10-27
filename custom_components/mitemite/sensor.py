@@ -12,6 +12,7 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.typing import StateType
 from homeassistant.util import dt as dt_util
@@ -196,6 +197,20 @@ async def async_setup_entry(
 ) -> None:
     """Set up the MiteMite sensors."""
     coordinator = entry.runtime_data.coordinator
+
+    # Keep the aggregate sensor's entity ID stable across UI languages.
+    registry = er.async_get(hass)
+    unique_id = "system_upcoming_media"
+    current_entity_id = registry.async_get_entity_id("sensor", "mitemite", unique_id)
+    target_entity_id = "sensor.mitemite_upcoming_media"
+    if current_entity_id and current_entity_id != target_entity_id:
+        target_entry = registry.async_get(target_entity_id)
+        if target_entry is None:
+            registry.async_update_entity(
+                current_entity_id,
+                new_entity_id=target_entity_id,
+            )
+
     entities: list[SensorEntity] = [
         MiteMiteSystemSensor(coordinator, description)
         for description in SYSTEM_SENSORS
@@ -260,6 +275,8 @@ class MiteMiteSystemSensor(MiteMiteSystemEntity, SensorEntity):
     ) -> None:
         super().__init__(coordinator, description.key)
         self.entity_description = description
+        if description.key == "upcoming_media":
+            self._attr_suggested_object_id = "mitemite_upcoming_media"
 
     @property
     def native_value(self) -> StateType | datetime:
