@@ -92,8 +92,8 @@ class Episode:
 class Series:
     """A TV series with everything MiteMite needs, from one TMDB request.
 
-    ``episodes`` is filled by a second request, only for series that have a
-    calendar: it holds the episodes of the current season that have not aired yet.
+    ``episodes`` is filled by a second request, only for series in the calendar:
+    it holds the episodes of the current season that have not aired yet.
     """
 
     id: int
@@ -147,7 +147,7 @@ class Series:
     def known_episodes(self) -> tuple[Episode, ...]:
         """Return the episodes with an air date TMDB tells us about, in air order.
 
-        These are the last and next episode to air and, for series with a
+        These are the last and next episode to air and, for series in the
         calendar, the episodes of the current season that have not aired yet.
         """
         known: dict[tuple[int, int], Episode] = {}

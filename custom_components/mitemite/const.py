@@ -2,7 +2,7 @@
 
 DOMAIN = "mitemite"
 NAME = "MiteMite"
-VERSION = "0.2.0"
+VERSION = "0.2.1"
 
 # Config entry data is limited to the API key (homeassistant.const.CONF_API_KEY).
 # Everything the user can change later lives in the entry options.
@@ -35,7 +35,7 @@ LOGO_SIZE = "w92"
 # Device identifier of the "MiteMite" device that groups diagnostics.
 SYSTEM_DEVICE_ID = "system"
 
-# Key of the optional per-series calendar entity (unique ID: "<series id>_calendar").
+# Key of the optional calendar entity (unique ID: "system_calendar").
 CALENDAR_KEY = "calendar"
 
 # Actions.

@@ -45,7 +45,7 @@ type MiteMiteConfigEntry = ConfigEntry[MiteMiteRuntimeData]
 class MiteMiteCoordinator(DataUpdateCoordinator[dict[int, Series]]):
     """Fetch every followed series from TMDB, one request each.
 
-    Series with a calendar cost a second request: the episodes of their current
+    Series in the calendar cost a second request: the episodes of their current
     season, needed to list more than the next episode.
     """
 
@@ -134,8 +134,8 @@ class MiteMiteCoordinator(DataUpdateCoordinator[dict[int, Series]]):
         """Attach the episodes of the current season that have not aired yet.
 
         The current season is the one of the next episode, or of the last one when
-        nothing is scheduled. Episodes before today are never kept: calendars do
-        not list the past. A failure here is not worth failing the update: the
+        nothing is scheduled. Episodes before today are never kept: the calendar
+        does not list the past. A failure here is not worth failing the update: the
         episodes of the previous update are kept.
         """
         anchor = series.next_episode or series.last_episode

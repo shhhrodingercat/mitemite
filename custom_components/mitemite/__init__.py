@@ -117,11 +117,16 @@ def _async_remove_stale_devices(
 def _async_remove_stale_calendars(
     hass: HomeAssistant, entry: MiteMiteConfigEntry
 ) -> None:
-    """Remove the calendar entities of series whose calendar was turned off."""
-    wanted = {
-        f"{series_id}_{CALENDAR_KEY}"
-        for series_id in entry.options.get(CONF_CALENDAR_IDS, [])
-    }
+    """Remove calendar entities that should no longer exist.
+
+    There is a single calendar, and only while some series are in it. This also
+    removes the per-series calendars of version 0.2.0.
+    """
+    wanted = (
+        {f"{SYSTEM_DEVICE_ID}_{CALENDAR_KEY}"}
+        if entry.options.get(CONF_CALENDAR_IDS)
+        else set()
+    )
     registry = er.async_get(hass)
     for entity in er.async_entries_for_config_entry(registry, entry.entry_id):
         if entity.domain == Platform.CALENDAR and entity.unique_id not in wanted:

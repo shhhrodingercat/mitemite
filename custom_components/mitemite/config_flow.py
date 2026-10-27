@@ -118,7 +118,7 @@ def _selection_schema(options: list[dict[str, str]]) -> vol.Schema:
 
 
 def _calendar_schema(options: list[dict[str, str]]) -> vol.Schema:
-    """Build the form that picks the series with a calendar: none by default."""
+    """Build the form that picks the series in the calendar: none by default."""
     return vol.Schema(
         {
             vol.Optional(CONF_CALENDAR_IDS, default=list): selector.SelectSelector(
@@ -259,7 +259,7 @@ class MiteMiteConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_calendars(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Ask which of the selected series get a calendar, then create the entry."""
+        """Ask which selected series go in the calendar, then create the entry."""
         if user_input is not None:
             return self.async_create_entry(
                 title=NAME,
@@ -310,7 +310,7 @@ class MiteMiteConfigFlow(ConfigFlow, domain=DOMAIN):
 
 
 class MiteMiteOptionsFlow(OptionsFlowWithReload):
-    """Add or remove followed series, choose their calendars and change settings.
+    """Add or remove followed series, choose those in the calendar, change settings.
 
     Every step stores the full options dict: an options flow replaces it.
     """
@@ -385,7 +385,7 @@ class MiteMiteOptionsFlow(OptionsFlowWithReload):
     async def async_step_add_calendars(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Ask which of the added series get a calendar, then save both lists."""
+        """Ask which of the added series go in the calendar, then save both lists."""
         if user_input is not None:
             updated = list(dict.fromkeys([*self._tracked_ids, *self._added]))
             chosen = _chosen_calendar_ids(user_input, self._added)
@@ -430,7 +430,7 @@ class MiteMiteOptionsFlow(OptionsFlowWithReload):
     async def async_step_calendars(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Turn the calendar of each followed series on or off."""
+        """Choose which followed series are in the calendar."""
         if user_input is not None:
             return self.async_create_entry(
                 data={

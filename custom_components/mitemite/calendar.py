@@ -1,4 +1,4 @@
-"""Calendars for MiteMite."""
+"""Calendar for MiteMite."""
 
 import json
 from datetime import date, datetime, timedelta
@@ -11,7 +11,7 @@ from homeassistant.util import dt as dt_util
 from .attributes import release_attributes
 from .const import CALENDAR_KEY, CONF_CALENDAR_IDS, DOMAIN
 from .coordinator import MiteMiteConfigEntry, MiteMiteCoordinator
-from .entity import MiteMiteEntity
+from .entity import MiteMiteSystemEntity
 from .models import Episode, Series
 
 PARALLEL_UPDATES = 0
@@ -22,14 +22,9 @@ async def async_setup_entry(
     entry: MiteMiteConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    """Set up the calendars of the series that have one."""
-    coordinator = entry.runtime_data.coordinator
-    calendar_ids = set(entry.options.get(CONF_CALENDAR_IDS, []))
-    async_add_entities(
-        MiteMiteCalendar(coordinator, series_id)
-        for series_id in coordinator.data
-        if series_id in calendar_ids
-    )
+    """Set up the MiteMite calendar, if any series is in it."""
+    if entry.options.get(CONF_CALENDAR_IDS):
+        async_add_entities([MiteMiteCalendar(entry.runtime_data.coordinator)])
 
 
 def _build_event(series: Series, episode: Episode, air_date: date) -> CalendarEvent:
@@ -53,31 +48,37 @@ def _overlaps(event: CalendarEvent, start: datetime, end: datetime) -> bool:
     return event_start < end and event_end > start
 
 
-class MiteMiteCalendar(MiteMiteEntity, CalendarEntity):
-    """The upcoming episodes of a series, one all-day event each.
+class MiteMiteCalendar(MiteMiteSystemEntity, CalendarEntity):
+    """The upcoming episodes of every series that is in the calendar.
 
-    The title of an event is the series name; everything else is in its
-    description, as JSON. The past is never listed.
+    One all-day event per episode. The title of an event is the series name;
+    everything else is in its description, as JSON. The past is never listed.
     """
 
+    # The calendar is the main entity of the MiteMite device and takes its name.
+    _attr_name = None
     _attr_translation_key = CALENDAR_KEY
     # The description repeats the series metadata: no need to record it.
     _unrecorded_attributes = frozenset({"description"})
 
-    def __init__(self, coordinator: MiteMiteCoordinator, series_id: int) -> None:
-        super().__init__(coordinator, series_id, CALENDAR_KEY)
+    def __init__(self, coordinator: MiteMiteCoordinator) -> None:
+        super().__init__(coordinator, CALENDAR_KEY)
 
     def _events(self) -> list[CalendarEvent]:
         """Return the events from today on, in air order."""
-        series = self.coordinator.data.get(self.series_id)
-        if series is None:
-            return []
+        calendar_ids = set(
+            self.coordinator.config_entry.options.get(CONF_CALENDAR_IDS, [])
+        )
         today = dt_util.now().date()
-        return [
+        events = [
             _build_event(series, episode, episode.air_date)
+            for series_id, series in (self.coordinator.data or {}).items()
+            if series_id in calendar_ids
             for episode in series.known_episodes
             if episode.air_date is not None and episode.air_date >= today
         ]
+        events.sort(key=lambda event: (event.start, event.summary, event.uid or ""))
+        return events
 
     @property
     def event(self) -> CalendarEvent | None:
