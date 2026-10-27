@@ -14,6 +14,7 @@ from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.typing import StateType
+from homeassistant.util import dt as dt_util
 
 from .attributes import (
     UNRECORDED_ATTRIBUTES,
@@ -69,6 +70,34 @@ def _status(series: Series) -> str | None:
     return None if series.status is SeriesStatus.UNKNOWN else series.status.value
 
 
+def _upcoming_media_data(coordinator: MiteMiteCoordinator) -> list[dict[str, str]]:
+    """Build Upcoming Media Card items from all known future episodes."""
+    today = dt_util.now().date()
+    releases = [
+        (episode.air_date, series.name.casefold(), episode.season_number,
+         episode.number, series, episode)
+        for series in coordinator.data.values()
+        for episode in series.known_episodes
+        if episode.air_date is not None and episode.air_date >= today
+    ]
+    releases.sort(key=lambda item: item[:4])
+
+    data: list[dict[str, str]] = []
+    for air_date, _, _, _, series, episode in releases:
+        item = {
+            "title": series.name,
+            "episode": episode.name or episode.code,
+            "number": episode.code,
+            "airdate": air_date.isoformat(),
+            "poster": series.poster_url,
+            "fanart": series.backdrop_url,
+            "summary": episode.overview,
+            "deep_link": series.tmdb_url,
+        }
+        data.append({key: value for key, value in item.items() if value})
+    return data
+
+
 SERIES_SENSORS: tuple[MiteMiteSensorDescription, ...] = (
     MiteMiteSensorDescription(
         key="next_episode",
@@ -117,6 +146,13 @@ SERIES_SENSORS: tuple[MiteMiteSensorDescription, ...] = (
 )
 
 SYSTEM_SENSORS: tuple[MiteMiteSystemSensorDescription, ...] = (
+    MiteMiteSystemSensorDescription(
+        key="upcoming_media",
+        translation_key="upcoming_media",
+        icon="mdi:television-play",
+        value_fn=lambda coordinator: len(_upcoming_media_data(coordinator)),
+        attributes_fn=lambda coordinator: {"data": _upcoming_media_data(coordinator)},
+    ),
     MiteMiteSystemSensorDescription(
         key="last_update",
         translation_key="last_update",
