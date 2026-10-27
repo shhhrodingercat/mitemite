@@ -29,10 +29,10 @@
         }
       },
       "calendars": {
-        "title": "Calendari",
-        "description": "Scegli le serie che avranno un calendario dedicato, con un evento di un giorno intero per ogni episodio in arrivo. Lascia tutto deselezionato per saltare. Ogni calendario costa una richiesta TMDB in più a ogni aggiornamento.",
+        "title": "Calendario",
+        "description": "Scegli le serie da mostrare nel calendario MiteMite, con un evento di un giorno intero per ogni episodio in arrivo. Lascia tutto deselezionato per saltare. Ogni serie nel calendario costa una richiesta TMDB in più a ogni aggiornamento.",
         "data": {
-          "calendar_ids": "Crea un calendario per"
+          "calendar_ids": "Mostra nel calendario"
         }
       },
       "reauth_confirm": {
@@ -63,7 +63,7 @@
         "menu_options": {
           "add_search": "Aggiungi serie",
           "remove": "Rimuovi serie",
-          "calendars": "Calendari",
+          "calendars": "Calendario",
           "settings": "Impostazioni"
         }
       },
@@ -85,10 +85,10 @@
         }
       },
       "add_calendars": {
-        "title": "Calendari",
-        "description": "Scegli le nuove serie che avranno un calendario dedicato, con un evento di un giorno intero per ogni episodio in arrivo. Lascia tutto deselezionato per saltare. Ogni calendario costa una richiesta TMDB in più a ogni aggiornamento.",
+        "title": "Calendario",
+        "description": "Scegli le nuove serie da mostrare nel calendario MiteMite, con un evento di un giorno intero per ogni episodio in arrivo. Lascia tutto deselezionato per saltare. Ogni serie nel calendario costa una richiesta TMDB in più a ogni aggiornamento.",
         "data": {
-          "calendar_ids": "Crea un calendario per"
+          "calendar_ids": "Mostra nel calendario"
         }
       },
       "remove": {
@@ -99,10 +99,10 @@
         }
       },
       "calendars": {
-        "title": "Gestisci i calendari",
-        "description": "Seleziona le serie che hanno un calendario dedicato. Le serie che deselezioni lo perdono. Ogni calendario costa una richiesta TMDB in più a ogni aggiornamento.",
+        "title": "Gestisci il calendario",
+        "description": "Seleziona le serie mostrate nel calendario MiteMite. Le serie che deselezioni vengono tolte. Ogni serie nel calendario costa una richiesta TMDB in più a ogni aggiornamento.",
         "data": {
-          "calendar_ids": "Serie con un calendario"
+          "calendar_ids": "Serie nel calendario"
         }
       },
       "settings": {
@@ -177,11 +177,6 @@
     "button": {
       "refresh": {
         "name": "Aggiorna dati"
-      }
-    },
-    "calendar": {
-      "calendar": {
-        "name": "Calendario"
       }
     }
   },

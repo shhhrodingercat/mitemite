@@ -29,10 +29,10 @@
         }
       },
       "calendars": {
-        "title": "Calendars",
-        "description": "Choose the series that get a dedicated calendar with one all-day event for each upcoming episode. Leave everything unselected to skip it. Each calendar costs one more TMDB request per update.",
+        "title": "Calendar",
+        "description": "Choose the series to show in the MiteMite calendar, with one all-day event for each upcoming episode. Leave everything unselected to skip it. Each series in the calendar costs one more TMDB request per update.",
         "data": {
-          "calendar_ids": "Create a calendar for"
+          "calendar_ids": "Show in the calendar"
         }
       },
       "reauth_confirm": {
@@ -63,7 +63,7 @@
         "menu_options": {
           "add_search": "Add series",
           "remove": "Remove series",
-          "calendars": "Calendars",
+          "calendars": "Calendar",
           "settings": "Settings"
         }
       },
@@ -85,10 +85,10 @@
         }
       },
       "add_calendars": {
-        "title": "Calendars",
-        "description": "Choose the new series that get a dedicated calendar with one all-day event for each upcoming episode. Leave everything unselected to skip it. Each calendar costs one more TMDB request per update.",
+        "title": "Calendar",
+        "description": "Choose the new series to show in the MiteMite calendar, with one all-day event for each upcoming episode. Leave everything unselected to skip it. Each series in the calendar costs one more TMDB request per update.",
         "data": {
-          "calendar_ids": "Create a calendar for"
+          "calendar_ids": "Show in the calendar"
         }
       },
       "remove": {
@@ -99,10 +99,10 @@
         }
       },
       "calendars": {
-        "title": "Manage calendars",
-        "description": "Select the series that have a dedicated calendar. Series you unselect lose it. Each calendar costs one more TMDB request per update.",
+        "title": "Manage the calendar",
+        "description": "Select the series shown in the MiteMite calendar. Series you unselect are removed from it. Each series in the calendar costs one more TMDB request per update.",
         "data": {
-          "calendar_ids": "Series with a calendar"
+          "calendar_ids": "Series in the calendar"
         }
       },
       "settings": {
@@ -177,11 +177,6 @@
     "button": {
       "refresh": {
         "name": "Update data"
-      }
-    },
-    "calendar": {
-      "calendar": {
-        "name": "Calendar"
       }
     }
   },
