@@ -167,6 +167,9 @@
           "rate_limited": "Limite di richieste",
           "error": "Errore"
         }
+      },
+      "upcoming_media": {
+        "name": "Prossime uscite per la card"
       }
     },
     "binary_sensor": {
