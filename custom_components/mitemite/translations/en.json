@@ -167,6 +167,9 @@
           "rate_limited": "Rate limited",
           "error": "Error"
         }
+      },
+      "upcoming_media": {
+        "name": "Upcoming media"
       }
     },
     "binary_sensor": {
