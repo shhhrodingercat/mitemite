@@ -6,7 +6,7 @@ MiteMite follows the TV series and anime you choose, tells you when the next epi
 
 ## Status
 
-Early development — version 0.2.4. Setup, options, the TMDB client, the entities, the optional calendar and the actions below are implemented. It has been tested against recorded TMDB responses; feedback from real installations is welcome.
+Version 1.0.0.
 
 ## Features
 
@@ -44,7 +44,7 @@ Use `sensor.mitemite_upcoming_media` with [Upcoming Media Card](https://github.c
 ```yaml
 type: custom:upcoming-media-card
 entity: sensor.mitemite_upcoming_media
-title: Prossime uscite
+title: Upcoming releases
 image_style: poster
 max: 10
 ```
@@ -231,14 +231,6 @@ Only one MiteMite instance can be configured. To change the list later, open the
 - **A series' entities are unavailable:** TMDB no longer has it. Remove it from the options.
 - **API status shows an error:** the `last_error` attribute says why. Entities keep their last data and the integration retries after 15 minutes; press **Update data** to retry now.
 - **The calendar is empty or has fewer episodes than expected:** MiteMite lists what TMDB has scheduled for the current season of each series in it, and nothing before today. A series with no scheduled episode adds no events until TMDB adds one.
-
-## Development
-
-```bash
-pip install -r requirements_test.txt
-ruff check .
-pytest
-```
 
 ## License
 
