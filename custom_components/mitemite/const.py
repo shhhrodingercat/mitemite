@@ -2,7 +2,7 @@
 
 DOMAIN = "mitemite"
 NAME = "MiteMite"
-VERSION = "0.2.1"
+VERSION = "1.0.0"
 
 # Config entry data is limited to the API key (homeassistant.const.CONF_API_KEY).
 # Everything the user can change later lives in the entry options.
